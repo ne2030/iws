@@ -52,3 +52,49 @@ pub fn run_claude(name: &str) -> Result<()> {
 
     Ok(())
 }
+
+/// Open Claude Code in a new Warp tab (non-blocking, TUI stays alive)
+pub fn run_claude_new_tab(name: &str) -> Result<()> {
+    let root = Config::find_root()?;
+    let _ws = WorkspaceConfig::load(&root, name)?;
+    let ws_dir = WorkspaceConfig::workspace_dir(&root, name);
+    let ws_path = ws_dir.to_string_lossy();
+
+    let script = format!(
+        r#"
+tell application "Warp" to activate
+delay 0.3
+tell application "System Events"
+    keystroke "t" using command down
+    delay 0.5
+    keystroke "cd {} && claude"
+    key code 36
+end tell
+"#,
+        shell_escape(&ws_path),
+    );
+
+    std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .spawn()?;
+
+    Ok(())
+}
+
+/// Open workspace directory in Finder
+pub fn run_finder(name: &str) -> Result<()> {
+    let root = Config::find_root()?;
+    let _ws = WorkspaceConfig::load(&root, name)?;
+    let ws_dir = WorkspaceConfig::workspace_dir(&root, name);
+
+    std::process::Command::new("open")
+        .arg(&ws_dir)
+        .spawn()?;
+
+    Ok(())
+}
+
+fn shell_escape(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''"))
+}

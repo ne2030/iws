@@ -181,9 +181,18 @@ impl App {
         Ok(())
     }
 
-    fn open_claude(&self) -> Result<()> {
+    fn open_claude_new_tab(&mut self) -> Result<()> {
         if let Some(ws) = self.selected_ws() {
-            commands::open::run_claude(&ws.name)?;
+            commands::open::run_claude_new_tab(&ws.name)?;
+            self.set_msg(format!("Opening Claude in new tab for '{}'", ws.name), false);
+        }
+        Ok(())
+    }
+
+    fn open_finder(&mut self) -> Result<()> {
+        if let Some(ws) = self.selected_ws() {
+            commands::open::run_finder(&ws.name)?;
+            self.set_msg(format!("Opened '{}' in Finder", ws.name), false);
         }
         Ok(())
     }
@@ -266,10 +275,12 @@ pub fn run() -> Result<()> {
                     }
                     KeyCode::Char('c') => {
                         if app.selected_ws().is_some() {
-                            restore_terminal(&mut terminal)?;
-                            let _ = app.open_claude();
-                            terminal = setup_terminal()?;
-                            app.refresh()?;
+                            let _ = app.open_claude_new_tab();
+                        }
+                    }
+                    KeyCode::Char('f') => {
+                        if app.selected_ws().is_some() {
+                            let _ = app.open_finder();
                         }
                     }
                     KeyCode::Char('d') => {
@@ -514,6 +525,8 @@ fn draw_detail_panel(f: &mut Frame, app: &App, area: Rect) {
             Span::raw("pen  "),
             Span::styled("c", Style::default().bold().fg(Color::Cyan)),
             Span::raw("laude  "),
+            Span::styled("f", Style::default().bold().fg(Color::Cyan)),
+            Span::raw("inder  "),
             Span::styled("d", Style::default().bold().fg(Color::Cyan)),
             Span::raw("one  "),
             Span::styled("r", Style::default().bold().fg(Color::Cyan)),
