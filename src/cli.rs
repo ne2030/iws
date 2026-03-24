@@ -74,6 +74,12 @@ enum Command {
     Pr {
         /// Workspace name
         name: String,
+        /// PR title (default: workspace name)
+        #[arg(short, long)]
+        title: Option<String>,
+        /// PR body/description
+        #[arg(long)]
+        body: Option<String>,
     },
 
     /// Clean up a workspace (remove worktrees and branches)
@@ -99,7 +105,7 @@ impl Cli {
                 Command::Claude { name } => commands::open::run_claude(&name),
                 Command::AddRepo { name, repo, branch } => commands::repo::add(&name, &repo, branch.as_deref()),
                 Command::RemoveRepo { name, repo } => commands::repo::remove(&name, &repo),
-                Command::Pr { name } => commands::pr::run(&name),
+                Command::Pr { name, title, body } => commands::pr::run(&name, title.as_deref(), body.as_deref()),
                 Command::Done { name, force } => commands::done::run(&name, force),
             },
         }

@@ -5,7 +5,7 @@ use crate::config::Config;
 use crate::workspace::WorkspaceConfig;
 use crate::git;
 
-pub fn run(name: &str) -> Result<()> {
+pub fn run(name: &str, custom_title: Option<&str>, custom_body: Option<&str>) -> Result<()> {
     if !git::has_gh() {
         bail!("gh CLI is not installed. Install it with: brew install gh");
     }
@@ -56,8 +56,14 @@ pub fn run(name: &str) -> Result<()> {
             format!("\n\n## Related PRs\n{}", links.join("\n"))
         };
 
-        let title = format!("{} ({})", name, repo_name);
-        let body = format!("Workspace: `{}`\nBranch: `{}`{}{}", name, repo_info.branch, cross_ref, pr_links);
+        let title = match custom_title {
+            Some(t) => format!("{} ({})", t, repo_name),
+            None => format!("{} ({})", name, repo_name),
+        };
+        let body = match custom_body {
+            Some(b) => format!("{}{}{}", b, cross_ref, pr_links),
+            None => format!("Workspace: `{}`\nBranch: `{}`{}{}", name, repo_info.branch, cross_ref, pr_links),
+        };
 
         match git::create_pr(&wt_path, &title, &body) {
             Ok(url) => {
